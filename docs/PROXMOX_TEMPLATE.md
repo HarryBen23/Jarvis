@@ -13,7 +13,7 @@ HOSTNAME="jarvis"
 MEMORY=8192        # 8GB
 CORES=4            # 4 cores
 DISK=50            # 50GB
-GATEWAY="192.168.1.1"
+GATEWAY="192.168.3.1"
 BRIDGE="vmbr0"     # Ajuster selon votre setup
 
 # Créer le conteneur
@@ -32,7 +32,7 @@ pct create $CONTAINER_ID \
 echo -e "auto eth0\niface eth0 inet dhcp" > /var/lib/lxc/$CONTAINER_ID/rootfs/etc/network/interfaces
 
 # Ou IP statique
-# pct set $CONTAINER_ID -net0 name=eth0,bridge=$BRIDGE,ip=192.168.1.150/24,gw=$GATEWAY
+# pct set $CONTAINER_ID -net0 name=eth0,bridge=$BRIDGE,ip=192.168.3.204/24,gw=$GATEWAY
 
 # Démarrer
 pct start $CONTAINER_ID
@@ -82,7 +82,7 @@ DISK=200          # 200GB
 pct enter 100
 
 # Ou SSH
-ssh root@192.168.1.150
+ssh root@192.168.3.204
 
 # Mettre à jour
 apt update && apt upgrade -y
@@ -112,7 +112,7 @@ pct firewall add 100 IN -p tcp -dport 8123 -j ACCEPT  # Home Assistant
 pct firewall add 100 IN -p tcp -dport 22 -j ACCEPT    # SSH
 
 # SSH seulement depuis IP spécifique
-pct firewall add 100 IN -p tcp -dport 22 -s 192.168.1.100 -j ACCEPT
+pct firewall add 100 IN -p tcp -dport 22 -s 192.168.3.100 -j ACCEPT
 ```
 
 ### SecureStart
@@ -185,7 +185,7 @@ pct rollback 100 "before-jarvis-update-20260510"
 
 ```bash
 # Modifier config
-pct set 100 -net0 name=eth0,bridge=vmbr0,ip=192.168.1.150/24,gw=192.168.1.1
+pct set 100 -net0 name=eth0,bridge=vmbr0,ip=192.168.3.204/24,gw=192.168.3.1
 
 # Appliquer
 pct stop 100
@@ -308,7 +308,7 @@ ip a
 ip route
 
 # Ping gateway
-ping 192.168.1.1
+ping 192.168.3.1
 
 # Tester DNS
 ping 8.8.8.8
