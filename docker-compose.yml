@@ -21,16 +21,13 @@ services:
     volumes:
       - ./config:/app/config
       - ./logs:/app/logs
-      - /dev/snd:/dev/snd  # Audio
-    
-    devices:
-      - /dev/snd
-    
-    group_add:
-      - audio
-    
-    networks:
-      - home-network
+
+    # Audio device is optional. Remove these lines if /dev/snd is unavailable.
+    # devices:
+    #   - /dev/snd
+    #
+    # group_add:
+    #   - audio
 
   jarvis-cli:
     build:
@@ -47,16 +44,13 @@ services:
     volumes:
       - ./config:/app/config
       - ./logs:/app/logs
-      - /dev/snd:/dev/snd
-    
-    devices:
-      - /dev/snd
-    
-    group_add:
-      - audio
-    
-    networks:
-      - home-network
+
+    # Audio device is optional. Remove these lines if /dev/snd is unavailable.
+    # devices:
+    #   - /dev/snd
+    #
+    # group_add:
+    #   - audio
     
     # depends_on:
     #   - home-assistant
