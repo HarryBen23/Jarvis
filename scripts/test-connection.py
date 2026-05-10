@@ -27,7 +27,7 @@ async def test_openai_connection():
         client = openai.AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Dis bonjour en français"}],
             max_tokens=10
         )
