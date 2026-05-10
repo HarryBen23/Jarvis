@@ -27,7 +27,7 @@ async def test_openai_connection():
         client = openai.AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         
         response = await client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
             messages=[{"role": "user", "content": "Dis bonjour en français"}],
             max_tokens=10
         )
@@ -44,7 +44,7 @@ async def test_home_assistant():
     """Test la connexion à Home Assistant"""
     print("\n🧪 Test Home Assistant...")
     try:
-        url = os.getenv('HA_URL', 'http://localhost:8123')
+        url = os.getenv('HA_URL', 'http://home-assistant:8123')
         token = os.getenv('HA_TOKEN')
         
         if not token:
