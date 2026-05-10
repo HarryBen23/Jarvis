@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  jarvis-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: jarvis-api
+    restart: unless-stopped
+    
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HA_TOKEN=${HA_TOKEN}
+      - HA_URL=http://home-assistant:8123
+      - API_PORT=8000
+      - API_HOST=0.0.0.0
+    
+    ports:
+      - "8000:8000"  # Interface Web
+    
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - /dev/snd:/dev/snd  # Audio
+    
+    devices:
+      - /dev/snd
+    
+    group_add:
+      - audio
+    
+    networks:
+      - home-network
+    
+    depends_on:
+      - home-assistant
+
+  jarvis-cli:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: jarvis-cli
+    restart: unless-stopped
+    
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HA_TOKEN=${HA_TOKEN}
+      - HA_URL=http://home-assistant:8123
+    
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - /dev/snd:/dev/snd
+    
+    devices:
+      - /dev/snd
+    
+    group_add:
+      - audio
+    
+    networks:
+      - home-network
+    
+    depends_on:
+      - home-assistant
+    
+    # Décommenter pour lancer en mode CLI
+    # command: python src/jarvis.py
+
+  home-assistant:
+    image: ghcr.io/home-assistant/home-assistant:latest
+    container_name: home-assistant
+    restart: unless-stopped
+    
+    volumes:
+      - ./config/home-assistant:/config
+    
+    environment:
+      - TZ=Europe/Paris
+    
+    ports:
+      - "8123:8123"
+    
+    networks:
+      - home-network
+
+networks:
+  home-network:
+    driver: bridge

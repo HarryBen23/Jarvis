@@ -1,0 +1,62 @@
+# JARVIS - Fichier .gitignore
+
+# Environnement
+.env
+.env.local
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Logs
+logs/
+*.log
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Audio temporaires
+*.wav
+*.mp3
+*.tmp
+
+# Config Home Assistant
+config/home-assistant/
+
+# Secrets
+secrets.yaml
+tokens.json

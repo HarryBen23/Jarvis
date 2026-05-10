@@ -1,0 +1,10 @@
+{
+  "openai_api_key": "${OPENAI_API_KEY}",
+  "home_assistant_url": "http://home-assistant:8123",
+  "home_assistant_token": "${HA_TOKEN}",
+  "wake_word": "jarvis",
+  "device_index": null,
+  "sample_rate": 16000,
+  "audio_duration": 5.0,
+  "log_level": "INFO"
+}
