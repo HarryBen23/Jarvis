@@ -75,6 +75,3 @@ services:
   #   networks:
   #     - home-network
 
-networks:
-  home-network:
-    driver: bridge

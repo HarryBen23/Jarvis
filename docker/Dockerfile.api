@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     alsa-utils \
     pulseaudio \
+    libportaudio2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copier les fichiers
