@@ -79,10 +79,13 @@ async def startup_event():
         config = JarvisConfig()
         speech_recognition = SpeechRecognition(config.openai_api_key)
         ai_brain = AIBrain(config.openai_api_key, {})
-        ha_client = HomeAssistantClient(
-            config.home_assistant_url,
-            config.home_assistant_token
-        )
+        if config.home_assistant_token:
+            ha_client = HomeAssistantClient(
+                config.home_assistant_url,
+                config.home_assistant_token
+            )
+        else:
+            ha_client = None
         
         logger.info("✅ API JARVIS prête!")
     except Exception as e:
@@ -99,6 +102,13 @@ async def index():
 @app.get("/health")
 async def health_check():
     """Vérifier la santé de l'API"""
+    if not ha_client:
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "home_assistant": "not configured",
+            "openai": "configured" if config.openai_api_key else "not configured"
+        }
     try:
         states = await ha_client.get_states()
         return {
@@ -181,6 +191,8 @@ async def process_voice(file: UploadFile = File(...)):
 @app.get("/api/home-assistant/entities")
 async def get_ha_entities():
     """Récupérer les entités Home Assistant"""
+    if not ha_client:
+        raise HTTPException(status_code=503, detail="Home Assistant not configured")
     try:
         states = await ha_client.get_states()
         
@@ -208,6 +220,8 @@ async def get_ha_entities():
 @app.post("/api/home-assistant/service")
 async def call_ha_service(service_call: dict):
     """Appeler un service Home Assistant"""
+    if not ha_client:
+        raise HTTPException(status_code=503, detail="Home Assistant not configured")
     try:
         domain = service_call.get('domain')
         service = service_call.get('service')
@@ -250,6 +264,9 @@ async def execute_home_assistant_actions(command: str):
     """Exécuter les actions HA basées sur la commande"""
     command_lower = command.lower()
     
+    if not ha_client:
+        logger.warning("Home Assistant non configuré : action HA ignorée")
+        return
     try:
         if "lumière" in command_lower:
             if "allume" in command_lower or "on" in command_lower:

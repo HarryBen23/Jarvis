@@ -55,8 +55,7 @@ class JarvisConfig:
         
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY non configurée")
-        if not self.home_assistant_token:
-            raise ValueError("HA_TOKEN non configurée")
+        # Home Assistant is optional. If HA_TOKEN is not configured, HA functionality is disabled.
 
 
 class AudioCapture:
@@ -259,10 +258,12 @@ class JARVIS:
         )
         self.speech_recognition = SpeechRecognition(config.openai_api_key)
         self.ai_brain = AIBrain(config.openai_api_key, {})
-        self.ha_client = HomeAssistantClient(
-            config.home_assistant_url,
-            config.home_assistant_token
-        )
+        self.ha_client = None
+        if config.home_assistant_token:
+            self.ha_client = HomeAssistantClient(
+                config.home_assistant_url,
+                config.home_assistant_token
+            )
         self.is_running = False
     
     async def listen_and_respond(self):
@@ -302,6 +303,11 @@ class JARVIS:
         """Exécute les actions Home Assistant basées sur la commande"""
         command_lower = command.lower()
         
+        # Pas de Home Assistant configuré : ignorer les actions HA
+        if not self.ha_client:
+            logger.warning("Home Assistant non configuré : actions HA désactivées")
+            return
+
         # Exemples d'actions simples
         if "lumière" in command_lower and "on" in command_lower or "allume" in command_lower:
             await self.ha_client.call_service("light", "turn_on", {"entity_id": "light.salon"})

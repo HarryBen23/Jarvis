@@ -11,7 +11,7 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - HA_TOKEN=${HA_TOKEN}
-      - HA_URL=http://home-assistant:8123
+      - HA_URL=http://localhost:8123
       - API_PORT=8000
       - API_HOST=0.0.0.0
     
@@ -31,9 +31,6 @@ services:
     
     networks:
       - home-network
-    
-    depends_on:
-      - home-assistant
 
   jarvis-cli:
     build:
@@ -45,7 +42,7 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - HA_TOKEN=${HA_TOKEN}
-      - HA_URL=http://home-assistant:8123
+      - HA_URL=http://localhost:8123
     
     volumes:
       - ./config:/app/config
