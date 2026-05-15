@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 JARVIS - Interface Web</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 JARVIS</h1>
+            <p>Assistant IA pour Home Assistant</p>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot connected"></span>
+                API: Connectée
+            </div>
+            <div class="status-item">
+                <span class="status-dot" id="ha-status"></span>
+                <span>Home Assistant</span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot" id="ai-status"></span>
+                <span>OpenAI</span>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <h2>📝 Texte</h2>
+            <div class="input-group">
+                <input type="text" id="text-input" placeholder="Dites votre commande...">
+                <button class="btn-primary" onclick="sendText()">
+                    📤 Envoyer
+                </button>
+            </div>
+            
+            <h2>🎙️ Voix</h2>
+            <div class="voice-input">
+                <div class="voice-waveform hidden" id="waveform">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary btn-secondary" id="record-btn" onclick="toggleRecording()">
+                        🎤 Enregistrer
+                    </button>
+                    <button class="btn-secondary" onclick="listDevices()">
+                        📋 Appareils
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="error" id="error-message"></div>
+        
+        <div class="response-section">
+            <h3>💬 Réponse</h3>
+            <div class="response-text empty" id="response-text">
+                En attente de commande...
+            </div>
+        </div>
+        
+        <div class="entities-section hidden" id="entities-section">
+            <h3>🏠 Appareils domotiques</h3>
+            <div class="entity-list" id="entity-list"></div>
+        </div>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>

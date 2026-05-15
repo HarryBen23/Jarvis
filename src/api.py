@@ -35,6 +35,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Servir les fichiers statiques depuis /static
+static_dir = Path(__file__).resolve().parents[1] / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
@@ -95,7 +100,10 @@ async def startup_event():
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    """Affiche l'interface web"""
+    """Affiche l'interface web (serve static/index.html si présent)"""
+    index_file = static_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
     return get_html_interface()
 
 
