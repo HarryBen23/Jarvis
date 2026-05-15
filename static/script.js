@@ -7,11 +7,21 @@ async function init() {
     try {
         const health = await fetch('/health').then(r => r.json());
         
-        // Mettre à jour les statuts
-        document.getElementById('ha-status').classList.toggle('connected', 
-            health.home_assistant === 'connected');
-        document.getElementById('ai-status').classList.toggle('connected',
-            health.openai === 'configured');
+        // Mettre à jour les indicateurs de statut
+        const apiStatus = document.getElementById('api-status');
+        const haStatus = document.getElementById('ha-status');
+        const aiStatus = document.getElementById('ai-status');
+        
+        // API est considérée comme connectée si on reçoit la réponse
+        apiStatus.classList.add('api');
+        
+        if (health.home_assistant === 'connected') {
+            haStatus.classList.add('ha');
+        }
+        
+        if (health.openai === 'configured') {
+            aiStatus.classList.add('ai');
+        }
         
         // Charger les entités
         loadEntities();
@@ -74,9 +84,9 @@ async function startRecording() {
         mediaRecorder.start();
         isRecording = true;
         
-        document.getElementById('record-btn').classList.add('recording');
-        document.getElementById('record-btn').textContent = '⏹️ Arrêter';
-        document.getElementById('waveform').classList.remove('hidden');
+        const btn = document.getElementById('record-btn');
+        btn.classList.add('recording');
+        btn.textContent = '⏹️ Arrêter';
         
         showResponse('🎤 Enregistrement en cours...');
     } catch (error) {
@@ -85,12 +95,14 @@ async function startRecording() {
 }
 
 function stopRecording() {
-    mediaRecorder.stop();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
     isRecording = false;
     
-    document.getElementById('record-btn').classList.remove('recording');
-    document.getElementById('record-btn').textContent = '🎤 Enregistrer';
-    document.getElementById('waveform').classList.add('hidden');
+    const btn = document.getElementById('record-btn');
+    btn.classList.remove('recording');
+    btn.textContent = '🎤 Voix';
 }
 
 async function processAudio() {
@@ -140,13 +152,13 @@ function displayEntities(entities) {
     for (const [domain, items] of Object.entries(entities)) {
         if (items.length > 0 && domain !== 'update') {
             hasEntities = true;
-            items.slice(0, 5).forEach(item => {
+            items.slice(0, 8).forEach(item => {
                 const state = item.state || 'N/A';
                 const name = item.attributes.friendly_name || item.entity_id;
                 
                 const html = `
-                    <div class="entity-item">
-                        <div>${name}</div>
+                    <div class="entity-item" title="${name}">
+                        <div>${name.substring(0, 15)}</div>
                         <div class="state">${state}</div>
                     </div>
                 `;
@@ -155,12 +167,18 @@ function displayEntities(entities) {
         }
     }
     
-    section.classList.toggle('hidden', !hasEntities);
+    if (hasEntities) {
+        section.style.display = 'block';
+    } else {
+        section.style.display = 'none';
+    }
 }
 
 function showLoading() {
-    document.getElementById('response-text').innerHTML = '⏳ Traitement...';
-    document.getElementById('response-text').classList.add('loading');
+    const element = document.getElementById('response-text');
+    element.innerHTML = '⏳ Traitement...';
+    element.classList.add('loading');
+    element.classList.remove('empty');
 }
 
 function showResponse(text) {
@@ -179,6 +197,12 @@ function showError(message) {
     }, 5000);
 }
 
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendText();
+    }
+}
+
 async function listDevices() {
     showResponse('📋 Appareils audio disponibles\n(Vérifiez la console du navigateur)');
     
@@ -187,11 +211,7 @@ async function listDevices() {
     console.log('Appareils audio:', audioDevices);
 }
 
-// Raccourcis clavier
+// Initialisation au chargement
 document.addEventListener('DOMContentLoaded', () => {
     init();
-    
-    document.getElementById('text-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendText();
-    });
 });

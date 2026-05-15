@@ -3,91 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS - Interface</title>
+    <title>JARVIS - Iron Man AI</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="app-shell">
-        <div class="sidebar">
-            <div class="brand">
-                <div class="brand-icon">J</div>
-                <div>
-                    <h1>JARVIS</h1>
-                    <p>Interface de contrôle</p>
-                </div>
-            </div>
+    <div class="jarvis-container">
+        <!-- Particules de fond -->
+        <div class="particle-field" id="particle-field"></div>
 
-            <div class="status-card">
-                <h2>Statut</h2>
-                <div class="status-row">
-                    <span>API</span>
-                    <span class="status-pill connected">Connectée</span>
+        <!-- Orbe central Jarvis -->
+        <div class="orb-wrapper">
+            <div class="orb-container">
+                <div class="orb-core"></div>
+                <div class="orb-pulse"></div>
+                <div class="orb-rings">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
                 </div>
-                <div class="status-row">
-                    <span>Home Assistant</span>
-                    <span class="status-pill" id="ha-status">Chargement...</span>
-                </div>
-                <div class="status-row">
-                    <span>OpenAI</span>
-                    <span class="status-pill" id="ai-status">Chargement...</span>
-                </div>
+                <div class="orb-glow"></div>
             </div>
-
-            <div class="panel-mini">
-                <h3>État système</h3>
-                <div class="metric">
-                    <span>CPU</span>
-                    <span id="cpu-value">-- %</span>
-                </div>
-                <div class="metric">
-                    <span>Mémoire</span>
-                    <span id="mem-value">-- %</span>
-                </div>
-                <div class="metric">
-                    <span>Réseau</span>
-                    <span id="net-value">-- Mo/s</span>
-                </div>
+            
+            <!-- Indicateur de statut -->
+            <div class="status-indicator">
+                <span id="api-status" class="status-dot api"></span>
+                <span id="ha-status" class="status-dot ha"></span>
+                <span id="ai-status" class="status-dot ai"></span>
             </div>
         </div>
 
-        <main class="main-panel">
-            <section class="hero">
-                <h2>Contrôle intelligent</h2>
-                <p>Commande JARVIS avec texte ou voix et supervise ton installation Home Assistant.</p>
-            </section>
-
-            <section class="command-panel">
-                <div class="input-group">
-                    <input type="text" id="text-input" placeholder="Écris ta commande...">
-                    <button class="btn-primary" onclick="sendText()">Envoyer</button>
-                </div>
-
-                <div class="voice-group">
-                    <button class="btn-secondary" id="record-btn" onclick="toggleRecording()">🎤 Enregistrer</button>
-                    <button class="btn-secondary" onclick="listDevices()">📋 Appareils</button>
-                </div>
-            </section>
-
-            <section class="response-card">
-                <div class="card-title">Réponse</div>
-                <div class="response-text empty" id="response-text">En attente de commande...</div>
-            </section>
-
-            <section class="entities-card hidden" id="entities-section">
-                <div class="card-title">Appareils domotiques</div>
-                <div class="entity-list" id="entity-list"></div>
-            </section>
-
-            <div class="waveform hidden" id="waveform">
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
+        <!-- Interface de commande -->
+        <div class="control-panel">
+            <div class="command-input-group">
+                <input 
+                    type="text" 
+                    id="text-input" 
+                    placeholder="Dites quelque chose..."
+                    onkeypress="handleKeyPress(event)"
+                    class="command-input"
+                >
             </div>
 
-            <div class="error" id="error-message"></div>
-        </main>
+            <div class="control-buttons">
+                <button id="record-btn" class="btn-voice" onclick="toggleRecording()">
+                    🎤 Voix
+                </button>
+                <button class="btn-send" onclick="sendText()">
+                    Envoyer
+                </button>
+            </div>
+
+            <!-- Réponse de Jarvis -->
+            <div id="response-card" class="jarvis-response">
+                <div id="response-text" class="response-text empty">En attente...</div>
+                <div id="error-message" class="error-message"></div>
+            </div>
+
+            <!-- Appareils Home Assistant -->
+            <div id="entities-section" class="entities-section" style="display: none;">
+                <h3>Appareils</h3>
+                <div id="entity-list" class="entity-list"></div>
+            </div>
+        </div>
+
+        <!-- Texte de marque -->
+        <div class="brand-text">J.A.R.V.I.S</div>
     </div>
 
     <script src="/static/script.js"></script>
