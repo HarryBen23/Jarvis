@@ -21,6 +21,7 @@ services:
     volumes:
       - ./config:/app/config
       - ./logs:/app/logs
+      - ./static:/app/static
 
     # Audio device is optional. Remove these lines if /dev/snd is unavailable.
     # devices:

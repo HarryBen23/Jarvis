@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 COPY config/ ./config/
+COPY static/ ./static/
 
 # Volume pour la configuration runtime
 VOLUME ["/app/config"]
