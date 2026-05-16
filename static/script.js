@@ -5,7 +5,17 @@ let selectedMicDeviceId = null;
 let selectedSpeakerDeviceId = null;
 
 function isMicrophoneSupported() {
-    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    // Vérifier navigator.mediaDevices (standard moderne)
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        return true;
+    }
+    
+    // Fallback pour les anciens navigateurs
+    if (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia) {
+        return true;
+    }
+    
+    return false;
 }
 
 function showMicWarningBanner() {
@@ -21,6 +31,30 @@ function hideMicWarningBanner() {
     if (banner) {
         banner.style.display = 'none';
         document.body.classList.remove('mic-warning-visible');
+    }
+}
+
+function logAudioDiagnostics() {
+    const info = {
+        userAgent: navigator.userAgent,
+        mediaDevices: !!navigator.mediaDevices,
+        getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+        enumerateDevices: !!(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices),
+        webkitGetUserMedia: !!navigator.webkitGetUserMedia,
+        mozGetUserMedia: !!navigator.mozGetUserMedia,
+        msGetUserMedia: !!navigator.msGetUserMedia,
+        isSecureContext: window.isSecureContext,
+        location: window.location.origin,
+        protocol: window.location.protocol
+    };
+    
+    console.log('📊 Diagnostic audio:', info);
+    console.log('🎤 Microphone supporté:', isMicrophoneSupported());
+    
+    // Afficher dans un élément de la page si présent
+    const debugElement = document.getElementById('audio-debug-info');
+    if (debugElement) {
+        debugElement.innerHTML = `<pre>${JSON.stringify(info, null, 2)}</pre>`;
     }
 }
 
@@ -60,6 +94,9 @@ async function init() {
         // Charger les entités et le statut OpenAI
         loadEntities();
         loadOpenAIKeyInfo();
+        
+        // Afficher les infos de diagnostic
+        logAudioDiagnostics();
     } catch (error) {
         console.error('Erreur initialisation:', error);
     }
@@ -110,13 +147,36 @@ async function startRecording() {
 
         // Récupérer les paramètres du microphone
         const micSelect = document.getElementById('mic-select');
-        const constraints = {
-            audio: {
-                deviceId: micSelect && micSelect.value ? { exact: micSelect.value } : undefined
-            }
-        };
+        
+        let stream;
+        
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // API moderne
+            const constraints = {
+                audio: {
+                    deviceId: micSelect && micSelect.value ? { exact: micSelect.value } : undefined
+                }
+            };
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } else if (navigator.getUserMedia) {
+            // Fallback ancien navigateur
+            stream = await new Promise((resolve, reject) => {
+                navigator.getUserMedia({ audio: true }, resolve, reject);
+            });
+        } else if (navigator.webkitGetUserMedia) {
+            // Safari fallback
+            stream = await new Promise((resolve, reject) => {
+                navigator.webkitGetUserMedia({ audio: true }, resolve, reject);
+            });
+        } else if (navigator.mozGetUserMedia) {
+            // Firefox fallback
+            stream = await new Promise((resolve, reject) => {
+                navigator.mozGetUserMedia({ audio: true }, resolve, reject);
+            });
+        } else {
+            throw new Error('Aucune API de microphone disponible');
+        }
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
         
@@ -144,6 +204,7 @@ async function startRecording() {
         showResponse('🎤 Enregistrement en cours...');
     } catch (error) {
         showError(`Erreur microphone: ${error.message}`);
+        console.error('Erreur startRecording:', error);
     }
 }
 
@@ -250,7 +311,10 @@ async function saveOpenAIKey() {
 }
 
 async function loadAudioDevices() {
-    if (!isMicrophoneSupported()) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        console.warn('enumerateDevices non supporté');
+        return;
+    }
 
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();

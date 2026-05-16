@@ -117,6 +117,15 @@
                     OpenAI non configuré
                 </div>
             </div>
+
+            <!-- Debug audio (masqué par défaut) -->
+            <details class="debug-section">
+                <summary>🔧 Diagnostic Audio</summary>
+                <div id="audio-debug-info" class="debug-info"></div>
+                <button class="btn-secondary" onclick="logAudioDiagnostics(); alert('Infos affichées dans la console (F12)')">
+                    Afficher les logs
+                </button>
+            </details>
         </div>
 
         <!-- Texte de marque -->
