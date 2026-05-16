@@ -57,8 +57,8 @@ class JarvisConfig:
             self.audio_duration = 5.0
             self.log_level = os.getenv('LOG_LEVEL', 'INFO')
         
-        if not self.openai_api_key:
-            raise ValueError("OPENAI_API_KEY non configurée")
+        # OPENAI_API_KEY peut être absent au démarrage si l'utilisateur souhaite
+        # configurer la clé via l'interface web plus tard.
         # Home Assistant is optional. If HA_TOKEN is not configured, HA functionality is disabled.
 
     def _resolve_env_reference(self, value):

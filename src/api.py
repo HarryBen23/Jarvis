@@ -93,8 +93,12 @@ async def startup_event():
         logger.info("🚀 Initialisation de l'API JARVIS...")
         
         config = JarvisConfig()
-        speech_recognition = SpeechRecognition(config.openai_api_key)
-        ai_brain = AIBrain(config.openai_api_key, {})
+        if config.openai_api_key:
+            speech_recognition = SpeechRecognition(config.openai_api_key)
+            ai_brain = AIBrain(config.openai_api_key, {})
+        else:
+            speech_recognition = None
+            ai_brain = None
         if config.home_assistant_token:
             ha_client = HomeAssistantClient(
                 config.home_assistant_url,
@@ -186,6 +190,8 @@ async def health_check():
 @app.post("/api/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
     """Transcrire l'audio en texte"""
+    if not speech_recognition:
+        raise HTTPException(status_code=503, detail="OpenAI non configuré")
     try:
         # Lire le fichier
         audio_data = await file.read()
@@ -202,6 +208,8 @@ async def transcribe_audio(file: UploadFile = File(...)):
 @app.post("/api/process", response_model=AIResponse)
 async def process_command(message: UserMessage):
     """Traiter une commande texte"""
+    if not ai_brain:
+        raise HTTPException(status_code=503, detail="OpenAI non configuré")
     try:
         logger.info(f"📝 Traitement: {message.text}")
         
@@ -223,6 +231,8 @@ async def process_command(message: UserMessage):
 @app.post("/api/voice")
 async def process_voice(file: UploadFile = File(...)):
     """Traiter la voix: transcription + IA"""
+    if not speech_recognition or not ai_brain:
+        raise HTTPException(status_code=503, detail="OpenAI non configuré")
     try:
         # Lire le fichier audio
         audio_data = await file.read()
