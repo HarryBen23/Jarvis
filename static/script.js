@@ -8,27 +8,9 @@ function isMicrophoneSupported() {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
 
-function isSecureContext() {
-    // Microphone API fonctionne en HTTPS ou localhost/127.0.0.1 ou IP locale (192.168.x.x, 10.x.x.x)
-    if (window.isSecureContext) return true;
-    
-    const host = window.location.hostname;
-    // Autoriser localhost, 127.0.0.1, et les IPs privées (192.168.*, 10.*, 172.16-31.*)
-    if (host === 'localhost' || host === '127.0.0.1') return true;
-    if (host.startsWith('192.168.')) return true;
-    if (host.startsWith('10.')) return true;
-    if (host.startsWith('172.')) {
-        const second = parseInt(host.split('.')[1]);
-        if (second >= 16 && second <= 31) return true;
-    }
-    return false;
-}
-
 function showMicWarningBanner() {
     const banner = document.getElementById('mic-warning-banner');
-    const urlElement = document.getElementById('current-url');
-    if (banner && urlElement) {
-        urlElement.textContent = window.location.origin;
+    if (banner) {
         banner.style.display = 'block';
         document.body.classList.add('mic-warning-visible');
     }
@@ -65,9 +47,9 @@ async function init() {
         
         // Vérifier la disponibilité du micro
         const recordBtn = document.getElementById('record-btn');
-        if (!isMicrophoneSupported() || !isSecureContext()) {
+        if (!isMicrophoneSupported()) {
             recordBtn.disabled = true;
-            recordBtn.title = 'Microphone non disponible. Ouvrez via HTTPS, localhost ou IP locale.';
+            recordBtn.title = 'Microphone non supporté par ce navigateur.';
             recordBtn.style.opacity = '0.5';
             showMicWarningBanner();
         } else {
@@ -121,8 +103,8 @@ async function toggleRecording() {
 
 async function startRecording() {
     try {
-        if (!isMicrophoneSupported() || !isSecureContext()) {
-            showError('❌ Microphone non disponible. Accédez via HTTPS, localhost ou IP locale.');
+        if (!isMicrophoneSupported()) {
+            showError('❌ Microphone non supporté. Vérifiez votre navigateur.');
             return;
         }
 
