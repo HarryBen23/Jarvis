@@ -4,7 +4,7 @@ let isRecording = false;
 let selectedMicDeviceId = null;
 let selectedSpeakerDeviceId = null;
 let ttsVoice = null;
-let ttsEnabled = true;
+let ttsEnabled = false;
 
 function isMicrophoneSupported() {
     // Vérifier navigator.mediaDevices (standard moderne)
