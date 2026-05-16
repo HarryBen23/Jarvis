@@ -2,6 +2,10 @@ let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
 
+function isMicrophoneSupported() {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+}
+
 // Initialisation
 async function init() {
     try {
@@ -21,6 +25,13 @@ async function init() {
         
         if (health.openai === 'configured') {
             aiStatus.classList.add('ai');
+        }
+        
+        // Vérifier la disponibilité du micro
+        const recordBtn = document.getElementById('record-btn');
+        if (!isMicrophoneSupported()) {
+            recordBtn.disabled = true;
+            showError('Microphone non supporté par ce navigateur ou ce contexte. Utilisez HTTPS/localhost.');
         }
         
         // Charger les entités et le statut OpenAI
@@ -69,6 +80,11 @@ async function toggleRecording() {
 
 async function startRecording() {
     try {
+        if (!isMicrophoneSupported()) {
+            showError('Microphone non disponible : navigateur ou contexte non supporté. Ouvrez l’interface depuis HTTPS/localhost.');
+            return;
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
