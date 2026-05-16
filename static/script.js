@@ -139,20 +139,48 @@ function loadTTSVoices() {
         const newVoices = window.speechSynthesis.getVoices();
         setJarvisVoice(newVoices);
     };
+
+    setTimeout(() => {
+        const delayedVoices = window.speechSynthesis.getVoices();
+        if (delayedVoices.length > 0) {
+            setJarvisVoice(delayedVoices);
+        }
+    }, 500);
 }
 
 function speakText(text) {
-    if (!ttsEnabled || !window.speechSynthesis || !text) return;
+    if (!ttsEnabled) {
+        console.warn('TTS désactivé');
+        return;
+    }
+    if (!window.speechSynthesis) {
+        console.warn('SpeechSynthesis non supporté par ce navigateur.');
+        return;
+    }
+    if (!text) {
+        console.warn('Aucun texte à prononcer.');
+        return;
+    }
 
     try {
+        if (!ttsVoice) {
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                setJarvisVoice(voices);
+            }
+        }
+
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text.replace(/\n+/g, '. '));
         utterance.lang = 'fr-FR';
         utterance.rate = 0.95;
         utterance.pitch = 1;
+        utterance.volume = 1;
         if (ttsVoice) {
             utterance.voice = ttsVoice;
         }
+        utterance.onstart = () => console.log('TTS Jarvis démarré');
+        utterance.onerror = (event) => console.warn('Erreur TTS utterance:', event.error);
         window.speechSynthesis.speak(utterance);
     } catch (error) {
         console.warn('Erreur TTS:', error);
