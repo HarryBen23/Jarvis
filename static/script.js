@@ -23,8 +23,9 @@ async function init() {
             aiStatus.classList.add('ai');
         }
         
-        // Charger les entités
+        // Charger les entités et le statut OpenAI
         loadEntities();
+        loadOpenAIKeyInfo();
     } catch (error) {
         console.error('Erreur initialisation:', error);
     }
@@ -139,6 +140,60 @@ async function loadEntities() {
         }
     } catch (error) {
         console.error('Erreur chargement entités:', error);
+    }
+}
+
+async function loadOpenAIKeyInfo() {
+    try {
+        const response = await fetch('/api/openai-key');
+        if (!response.ok) {
+            return;
+        }
+        const data = await response.json();
+        const statusElement = document.getElementById('openai-key-status');
+
+        if (data.configured) {
+            statusElement.textContent = `OpenAI configuré (${data.masked_key || 'clé masquée'})`;
+            statusElement.classList.remove('empty');
+        } else {
+            statusElement.textContent = 'OpenAI non configuré';
+            statusElement.classList.add('empty');
+        }
+    } catch (error) {
+        console.error('Erreur chargement statut OpenAI:', error);
+    }
+}
+
+async function saveOpenAIKey() {
+    const keyInput = document.getElementById('openai-key-input');
+    const key = keyInput.value.trim();
+
+    if (!key) {
+        showError('Veuillez saisir une clé OpenAI');
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const response = await fetch('/api/openai-key', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            showResponse('Clé OpenAI enregistrée');
+            keyInput.value = '';
+            loadOpenAIKeyInfo();
+            init();
+        } else {
+            const errorData = await response.json();
+            showError(errorData.detail || 'Erreur sauvegarde clé');
+        }
+    } catch (error) {
+        showError(`Erreur: ${error.message}`);
     }
 }
 

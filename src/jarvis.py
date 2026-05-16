@@ -39,12 +39,14 @@ class JarvisConfig:
         if self.config_path.exists():
             with open(self.config_path, 'r') as f:
                 config = json.load(f)
-                self.openai_api_key = config.get('openai_api_key', os.getenv('OPENAI_API_KEY'))
+                self.openai_api_key = self._resolve_env_reference(config.get('openai_api_key')) or os.getenv('OPENAI_API_KEY')
                 self.home_assistant_url = config.get('home_assistant_url', 'http://localhost:8123')
-                self.home_assistant_token = config.get('home_assistant_token', os.getenv('HA_TOKEN'))
+                self.home_assistant_token = self._resolve_env_reference(config.get('home_assistant_token')) or os.getenv('HA_TOKEN')
                 self.wake_word = config.get('wake_word', 'jarvis')
                 self.device_index = config.get('device_index', None)
                 self.sample_rate = config.get('sample_rate', 16000)
+                self.audio_duration = config.get('audio_duration', 5.0)
+                self.log_level = config.get('log_level', os.getenv('LOG_LEVEL', 'INFO'))
         else:
             self.openai_api_key = os.getenv('OPENAI_API_KEY')
             self.home_assistant_url = os.getenv('HA_URL', 'http://localhost:8123')
@@ -52,10 +54,35 @@ class JarvisConfig:
             self.wake_word = 'jarvis'
             self.device_index = None
             self.sample_rate = 16000
+            self.audio_duration = 5.0
+            self.log_level = os.getenv('LOG_LEVEL', 'INFO')
         
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY non configurée")
         # Home Assistant is optional. If HA_TOKEN is not configured, HA functionality is disabled.
+
+    def _resolve_env_reference(self, value):
+        """Résoudre une référence d'environnement du type ${VAR}."""
+        if isinstance(value, str) and value.startswith('${') and value.endswith('}'):
+            env_name = value[2:-1]
+            return os.getenv(env_name)
+        return value
+
+    def save_config(self):
+        """Sauvegarder la configuration dans le fichier JSON."""
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_data = {
+            "openai_api_key": self.openai_api_key,
+            "home_assistant_url": self.home_assistant_url,
+            "home_assistant_token": self.home_assistant_token,
+            "wake_word": self.wake_word,
+            "device_index": self.device_index,
+            "sample_rate": self.sample_rate,
+            "audio_duration": self.audio_duration,
+            "log_level": self.log_level
+        }
+        with open(self.config_path, 'w') as f:
+            json.dump(config_data, f, indent=2)
 
 
 class AudioCapture:

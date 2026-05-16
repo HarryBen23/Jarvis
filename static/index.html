@@ -64,6 +64,25 @@
                 <h3>Appareils</h3>
                 <div id="entity-list" class="entity-list"></div>
             </div>
+
+            <!-- Clé OpenAI -->
+            <div id="openai-key-section" class="api-key-section">
+                <h3>Clé OpenAI</h3>
+                <div class="command-input-group">
+                    <input
+                        type="password"
+                        id="openai-key-input"
+                        placeholder="sk-..."
+                        class="command-input api-key-input"
+                    >
+                    <button class="btn-send" onclick="saveOpenAIKey()">
+                        Sauvegarder
+                    </button>
+                </div>
+                <div id="openai-key-status" class="response-text empty">
+                    OpenAI non configuré
+                </div>
+            </div>
         </div>
 
         <!-- Texte de marque -->

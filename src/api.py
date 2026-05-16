@@ -61,6 +61,17 @@ class UserMessage(BaseModel):
     text: str
 
 
+class OpenAIKeyStatus(BaseModel):
+    """Statut de la clé OpenAI"""
+    configured: bool
+    masked_key: Optional[str] = None
+
+
+class OpenAIKeyRequest(BaseModel):
+    """Requête pour mettre à jour la clé OpenAI"""
+    key: str
+
+
 class TranscriptionResponse(BaseModel):
     """Réponse de transcription"""
     text: str
@@ -105,6 +116,46 @@ async def index():
     if index_file.exists():
         return FileResponse(index_file)
     return get_html_interface()
+
+
+def mask_key(key: Optional[str]) -> Optional[str]:
+    if not key:
+        return None
+    if len(key) <= 12:
+        return key
+    return f"{key[:6]}...{key[-4:]}"
+
+
+@app.get("/api/openai-key", response_model=OpenAIKeyStatus)
+async def get_openai_key_status():
+    """Récupérer le statut de la clé OpenAI"""
+    return OpenAIKeyStatus(
+        configured=bool(config.openai_api_key),
+        masked_key=mask_key(config.openai_api_key)
+    )
+
+
+@app.post("/api/openai-key", response_model=OpenAIKeyStatus)
+async def update_openai_key(openai_key: OpenAIKeyRequest):
+    """Mettre à jour la clé OpenAI et la sauvegarder."""
+    if not openai_key.key or not openai_key.key.strip():
+        raise HTTPException(status_code=400, detail="Clé OpenAI vide")
+
+    try:
+        config.openai_api_key = openai_key.key.strip()
+        config.save_config()
+
+        global speech_recognition, ai_brain
+        speech_recognition = SpeechRecognition(config.openai_api_key)
+        ai_brain = AIBrain(config.openai_api_key, {})
+
+        return OpenAIKeyStatus(
+            configured=True,
+            masked_key=mask_key(config.openai_api_key)
+        )
+    except Exception as e:
+        logger.error(f"Erreur mise à jour clé OpenAI: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/health")

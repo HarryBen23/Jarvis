@@ -390,22 +390,25 @@ button, input {
     color: rgba(212, 248, 255, 0.8);
 }
 
-.entity-item:hover {
-    border-color: rgba(0, 212, 255, 0.5);
-    background: rgba(0, 212, 255, 0.1);
-    transform: translateY(-2px);
-}
+    .api-key-section {
+        padding: 20px;
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 12px;
+        background: rgba(3, 26, 47, 0.7);
+        backdrop-filter: blur(10px);
+    }
 
-.entity-item .state {
-    display: block;
-    color: #00ff9f;
-    font-weight: 600;
-    margin-top: 4px;
-    font-size: 0.75rem;
-}
+    .api-key-section h3 {
+        color: #00d4ff;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
 
-/* === MESSAGES D'ERREUR === */
-.error-message {
+    .api-key-input {
+        min-width: 0;
+    }
     color: #ff6b8a;
     font-size: 0.9rem;
     margin-top: 10px;
