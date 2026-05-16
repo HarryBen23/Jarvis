@@ -32,6 +32,17 @@
             </div>
         </div>
 
+        <!-- Banneau d'avertissement pour le microphone -->
+        <div id="mic-warning-banner" class="warning-banner" style="display: none;">
+            <div class="warning-content">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-text">
+                    <strong>Microphone non disponible</strong>
+                    <p>La capture vocale nécessite HTTPS, localhost ou une IP locale. Actuellement: <code id="current-url"></code></p>
+                </div>
+            </div>
+        </div>
+
         <!-- Interface de commande -->
         <div class="control-panel">
             <div class="command-input-group">
@@ -50,6 +61,29 @@
                 </button>
                 <button class="btn-send" onclick="sendText()">
                     Envoyer
+                </button>
+                <button class="btn-settings" onclick="toggleAudioSettings()" title="Paramètres audio">
+                    ⚙️
+                </button>
+            </div>
+
+            <!-- Paramètres audio -->
+            <div id="audio-settings" class="audio-settings" style="display: none;">
+                <h3>🔊 Paramètres Audio</h3>
+                <div class="settings-group">
+                    <label for="mic-select">Microphone:</label>
+                    <select id="mic-select" class="select-input">
+                        <option value="">Périphérique par défaut</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="speaker-select">Haut-parleur:</label>
+                    <select id="speaker-select" class="select-input">
+                        <option value="">Périphérique par défaut</option>
+                    </select>
+                </div>
+                <button class="btn-secondary" onclick="testAudio()">
+                    🔊 Tester le son
                 </button>
             </div>
 

@@ -1,9 +1,45 @@
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
+let selectedMicDeviceId = null;
+let selectedSpeakerDeviceId = null;
 
 function isMicrophoneSupported() {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+}
+
+function isSecureContext() {
+    // Microphone API fonctionne en HTTPS ou localhost/127.0.0.1 ou IP locale (192.168.x.x, 10.x.x.x)
+    if (window.isSecureContext) return true;
+    
+    const host = window.location.hostname;
+    // Autoriser localhost, 127.0.0.1, et les IPs privées (192.168.*, 10.*, 172.16-31.*)
+    if (host === 'localhost' || host === '127.0.0.1') return true;
+    if (host.startsWith('192.168.')) return true;
+    if (host.startsWith('10.')) return true;
+    if (host.startsWith('172.')) {
+        const second = parseInt(host.split('.')[1]);
+        if (second >= 16 && second <= 31) return true;
+    }
+    return false;
+}
+
+function showMicWarningBanner() {
+    const banner = document.getElementById('mic-warning-banner');
+    const urlElement = document.getElementById('current-url');
+    if (banner && urlElement) {
+        urlElement.textContent = window.location.origin;
+        banner.style.display = 'block';
+        document.body.classList.add('mic-warning-visible');
+    }
+}
+
+function hideMicWarningBanner() {
+    const banner = document.getElementById('mic-warning-banner');
+    if (banner) {
+        banner.style.display = 'none';
+        document.body.classList.remove('mic-warning-visible');
+    }
 }
 
 // Initialisation
@@ -29,9 +65,14 @@ async function init() {
         
         // Vérifier la disponibilité du micro
         const recordBtn = document.getElementById('record-btn');
-        if (!isMicrophoneSupported()) {
+        if (!isMicrophoneSupported() || !isSecureContext()) {
             recordBtn.disabled = true;
-            showError('Microphone non supporté par ce navigateur ou ce contexte. Utilisez HTTPS/localhost.');
+            recordBtn.title = 'Microphone non disponible. Ouvrez via HTTPS, localhost ou IP locale.';
+            recordBtn.style.opacity = '0.5';
+            showMicWarningBanner();
+        } else {
+            hideMicWarningBanner();
+            loadAudioDevices();
         }
         
         // Charger les entités et le statut OpenAI
@@ -80,14 +121,27 @@ async function toggleRecording() {
 
 async function startRecording() {
     try {
-        if (!isMicrophoneSupported()) {
-            showError('Microphone non disponible : navigateur ou contexte non supporté. Ouvrez l’interface depuis HTTPS/localhost.');
+        if (!isMicrophoneSupported() || !isSecureContext()) {
+            showError('❌ Microphone non disponible. Accédez via HTTPS, localhost ou IP locale.');
             return;
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Récupérer les paramètres du microphone
+        const micSelect = document.getElementById('mic-select');
+        const constraints = {
+            audio: {
+                deviceId: micSelect && micSelect.value ? { exact: micSelect.value } : undefined
+            }
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
+        
+        // Sauvegarder le deviceId sélectionné
+        if (micSelect && micSelect.value) {
+            selectedMicDeviceId = micSelect.value;
+        }
         
         mediaRecorder.ondataavailable = (event) => {
             audioChunks.push(event.data);
@@ -210,6 +264,88 @@ async function saveOpenAIKey() {
         }
     } catch (error) {
         showError(`Erreur: ${error.message}`);
+    }
+}
+
+async function loadAudioDevices() {
+    if (!isMicrophoneSupported()) return;
+
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        
+        const micSelect = document.getElementById('mic-select');
+        const speakerSelect = document.getElementById('speaker-select');
+        
+        if (!micSelect || !speakerSelect) return;
+
+        // Nettoyer les options existantes
+        micSelect.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
+        speakerSelect.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
+
+        devices.forEach(device => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.label || `${device.kind} ${device.deviceId.substring(0, 5)}`;
+            
+            if (device.kind === 'audioinput') {
+                micSelect.appendChild(option);
+            } else if (device.kind === 'audiooutput') {
+                speakerSelect.appendChild(option);
+            }
+        });
+
+        console.log('Appareils audio chargés:', devices.length);
+    } catch (error) {
+        console.error('Erreur chargement appareils:', error);
+    }
+}
+
+function toggleAudioSettings() {
+    const settings = document.getElementById('audio-settings');
+    if (settings) {
+        if (settings.style.display === 'none') {
+            settings.style.display = 'block';
+            loadAudioDevices();
+            
+            // Mettre à jour les sélections si elles ont été enregistrées
+            const micSelect = document.getElementById('mic-select');
+            const speakerSelect = document.getElementById('speaker-select');
+            if (micSelect && selectedMicDeviceId) {
+                micSelect.value = selectedMicDeviceId;
+            }
+            if (speakerSelect && selectedSpeakerDeviceId) {
+                speakerSelect.value = selectedSpeakerDeviceId;
+            }
+        } else {
+            settings.style.display = 'none';
+        }
+    }
+}
+
+async function testAudio() {
+    try {
+        showResponse('🔊 Test audio en cours...');
+        
+        // Créer un son de test
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 440; // La
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+        
+        showResponse('✅ Son de test joué');
+    } catch (error) {
+        showError(`Erreur test audio: ${error.message}`);
     }
 }
 
