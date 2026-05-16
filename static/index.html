@@ -84,7 +84,7 @@
                 </div>
                 <div class="settings-group">
                     <label>
-                        <input id="tts-toggle" type="checkbox" onchange="toggleTTS()">
+                        <input id="tts-toggle" type="checkbox" checked onchange="toggleTTS()">
                         Voix Jarvis
                     </label>
                 </div>
@@ -96,6 +96,9 @@
             <!-- Réponse de Jarvis -->
             <div id="response-card" class="jarvis-response">
                 <div id="response-text" class="response-text empty">En attente...</div>
+                <button id="replay-response-btn" class="btn-secondary" onclick="playLastResponse()" disabled>
+                    🔁 Réécouter Jarvis
+                </button>
                 <div id="error-message" class="error-message"></div>
             </div>
 

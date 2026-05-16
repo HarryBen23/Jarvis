@@ -4,7 +4,8 @@ let isRecording = false;
 let selectedMicDeviceId = null;
 let selectedSpeakerDeviceId = null;
 let ttsVoice = null;
-let ttsEnabled = false;
+let ttsEnabled = true;
+let lastResponseText = '';
 
 function isMicrophoneSupported() {
     // Vérifier navigator.mediaDevices (standard moderne)
@@ -505,6 +506,18 @@ function showResponse(text) {
     const element = document.getElementById('response-text');
     element.innerHTML = text.replace(/\n/g, '<br>');
     element.classList.remove('empty', 'loading');
+    lastResponseText = text;
+
+    const replayButton = document.getElementById('replay-response-btn');
+    if (replayButton) {
+        replayButton.disabled = !text;
+    }
+}
+
+function playLastResponse() {
+    if (lastResponseText) {
+        speakText(lastResponseText);
+    }
 }
 
 function showError(message) {
