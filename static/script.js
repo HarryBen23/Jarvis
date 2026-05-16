@@ -3,6 +3,8 @@ let audioChunks = [];
 let isRecording = false;
 let selectedMicDeviceId = null;
 let selectedSpeakerDeviceId = null;
+let ttsVoice = null;
+let ttsEnabled = true;
 
 function isMicrophoneSupported() {
     // Vérifier navigator.mediaDevices (standard moderne)
@@ -91,14 +93,68 @@ async function init() {
             loadAudioDevices();
         }
         
-        // Charger les entités et le statut OpenAI
+        // Charger les entités, la voix TTS et le statut OpenAI
         loadEntities();
         loadOpenAIKeyInfo();
+        loadTTSVoices();
         
         // Afficher les infos de diagnostic
         logAudioDiagnostics();
     } catch (error) {
         console.error('Erreur initialisation:', error);
+    }
+}
+
+function toggleTTS() {
+    const toggle = document.getElementById('tts-toggle');
+    ttsEnabled = toggle ? toggle.checked : true;
+}
+
+function setJarvisVoice(voices) {
+    if (!voices || voices.length === 0) return;
+
+    const preferred = voices.find(voice => {
+        const name = voice.name.toLowerCase();
+        return name.includes('fr') || name.includes('french') || name.includes('audrey') || name.includes('samantha');
+    });
+
+    ttsVoice = preferred || voices[0];
+    console.log('Voix Jarvis sélectionnée:', ttsVoice.name);
+}
+
+function loadTTSVoices() {
+    if (!window.speechSynthesis) {
+        console.warn('SpeechSynthesis non supporté par ce navigateur.');
+        return;
+    }
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        setJarvisVoice(voices);
+        return;
+    }
+
+    window.speechSynthesis.onvoiceschanged = () => {
+        const newVoices = window.speechSynthesis.getVoices();
+        setJarvisVoice(newVoices);
+    };
+}
+
+function speakText(text) {
+    if (!ttsEnabled || !window.speechSynthesis || !text) return;
+
+    try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text.replace(/\n+/g, '. '));
+        utterance.lang = 'fr-FR';
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        if (ttsVoice) {
+            utterance.voice = ttsVoice;
+        }
+        window.speechSynthesis.speak(utterance);
+    } catch (error) {
+        console.warn('Erreur TTS:', error);
     }
 }
 
@@ -120,6 +176,7 @@ async function sendText() {
         if (response.ok) {
             const data = await response.json();
             showResponse(data.response);
+            speakText(data.response);
             input.value = '';
             loadEntities();
         } else {
@@ -235,6 +292,7 @@ async function processAudio() {
         if (response.ok) {
             const data = await response.json();
             showResponse(`📝 "${data.input_text}"\n\n🤖 ${data.response}`);
+            speakText(data.response);
             loadEntities();
         } else {
             let message = 'Erreur transcription vocale';
