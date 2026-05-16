@@ -237,7 +237,16 @@ async function processAudio() {
             showResponse(`📝 "${data.input_text}"\n\n🤖 ${data.response}`);
             loadEntities();
         } else {
-            showError('Erreur transcription vocale');
+            let message = 'Erreur transcription vocale';
+            try {
+                const errorData = await response.json();
+                if (errorData.detail) {
+                    message += `: ${errorData.detail}`;
+                }
+            } catch (_e) {
+                // ignore non-JSON error response
+            }
+            showError(message);
         }
     } catch (error) {
         showError(`Erreur: ${error.message}`);

@@ -146,27 +146,24 @@ class SpeechRecognition:
                 tmp_path = tmp.name
             
             # Transcription avec Whisper
-            loop = asyncio.get_event_loop()
             with open(tmp_path, 'rb') as audio_file:
-                transcript = await loop.run_in_executor(
-                    None,
-                    lambda: self.client.audio.transcriptions.create(
-                        model="whisper-1",
-                        file=audio_file,
-                        language="fr"
-                    )
+                transcript = await self.client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    language="fr"
                 )
-            
+
             text = transcript.text
             logger.info(f"📝 Texte reconnu: {text}")
-            
-            # Cleanup
-            os.remove(tmp_path)
             return text
-        
         except Exception as e:
             logger.error(f"❌ Erreur transcription: {e}")
             raise
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
 
 
 class AIBrain:
